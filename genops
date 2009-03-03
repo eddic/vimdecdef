@@ -1,8 +1,0 @@
-#!/bin/bash
-
-IFS=$'\n' read -r -d '' -a list < operators
-
-for i in "${list[@]}"
-do
-	echo -n "$i\|"
-done
