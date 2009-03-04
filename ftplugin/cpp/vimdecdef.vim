@@ -119,6 +119,10 @@ function! s:ParseDeclaration()
 			let retVal[3] = retVal[3] . ' const'
 		endif
 
+		if search('=0', 'W', line('.'))
+			return [ 0, 0, 'type', 'identifier', '' ]
+		endif
+
 	elseif search('[a-zA-Z_][a-zA-Z0-9_]*\(\[\]\)\=;', 'cW', line('.'))
 		if match(modifiers, 'static') != -1 || s:CheckClass() == 0
 			let retVal[0] = 1
