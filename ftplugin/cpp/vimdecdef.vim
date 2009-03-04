@@ -183,16 +183,16 @@ function! s:SwapDecDef()
 
 	if declaration[0] == 1
 		if declaration[1] == 1
-			silent exec 'drop ' . fnameescape(s:GetBuddyFile())
+			silent exec 'e ' . fnameescape(s:GetBuddyFile())
 			let b:buddyFile = headerFileName
 			call s:GotoOrDropBack(declaration[3], declaration[2], declaration[4])
 		else
-			silent exec 'drop ' . fnameescape(s:GetBuddyFile())
+			silent exec 'e ' . fnameescape(s:GetBuddyFile())
 			let b:buddyFile = headerFileName
 			call s:GotoOrCreate(declaration[3], declaration[2], declaration[4])
 		endif
 	else
-		silent exec 'drop ' . fnameescape(s:GetBuddyFile())
+		silent exec 'e ' . fnameescape(s:GetBuddyFile())
 		let b:buddyFile = headerFileName
 		echo 'Switching to source file (' . expand("%:.") . ')'
 	endif
@@ -223,7 +223,7 @@ function! s:GotoOrDropBack(identifier, type, template)
 		silent normal zz
 		echo 'Found inline/template definition in source file (' . expand("%:.") . ')'
 	else
-		silent exec 'drop ' . b:buddyFile
+		silent exec 'e ' . b:buddyFile
 		call s:GotoOrCreate(a:identifier, a:type, a:template)
 	endif
 endfunction
@@ -235,7 +235,10 @@ function! s:GotoOrCreate(identifier, type, template)
 	let lineNo = s:CheckForDefinition(a:identifier, a:template)
 
 	if lineNo == 0
-		let definition = a:type . ' ' . a:identifier
+		let definition = a:identifier
+		if a:type != ''
+			let definition = a:type . ' ' . definition
+		endif
 		if a:template != ''
 			let definition = 'template<' . a:template . '> ' . definition
 		endif
@@ -278,7 +281,7 @@ endfunction
 
 function! s:VimDecDef()
 	if expand("%:e") == 'cpp'
-		silent exec 'drop ' . b:buddyFile
+		silent exec 'e ' . b:buddyFile
 		echo 'Returning to header file (' . expand("%:.") . ')'
 	elseif b:goBack != 0
 		silent exec b:goBack
