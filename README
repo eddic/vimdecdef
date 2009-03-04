@@ -63,6 +63,9 @@ Obviously this script is not without it's limitations. Here are a few that have
 been noticed. Feel free to contact me with others you may notice. Or better yet,
 fix them!
 
+ * Unable to determine the scope identifier for return types and object types.
+   I would really like a solution, but it escapes me. When the script generates
+	a definition for you, you must edit the type/return type manually.
  * Declarations MUST be not be split up into multiple lines in your code. This
    means that class declarations must have the class and template part on the
    same line. Function declarations must have all template stuff, return type,
