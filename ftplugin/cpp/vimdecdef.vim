@@ -59,7 +59,7 @@ function! s:ParseDeclaration()
 
 	let retVal = [ 0, 0, 'type', 'identifier', '' ]
 
-	if match(getline('.'), ';') == -1
+	if matchstr(getline('.'), '.\%>' . ( match(getline('.'), '[;{]') + 1 ) . 'c') != ';'
 		return retVal
 	endif
 	
@@ -69,11 +69,8 @@ function! s:ParseDeclaration()
 		return retVal
 	endif
 
-	let template = ''
-
 	if search('template<.', 'cWe', line('.')) != 0
 		let retVal[4] = s:ParseArguments() 
-		let template = s:DropTypes(retVal[4])
 		let retVal[1] = 1
 		if scope[1] != ''
 			let retVal[4] = scope[1] . ', ' . retVal[4]
@@ -85,13 +82,17 @@ function! s:ParseDeclaration()
 
 	let modifiers = ''
 	let modifiersStart = -1
-	if search('\(\(inline\|static\|virtual\|explicit\)\s\+\)\+', 'cW', line('.'))
+	if search('\(\(inline\|static\|virtual\|explicit\|friend\|extern\)\s\+\)\+', 'cW', line('.'))
 		let modifiersStart = col('.') - 1
-		call search('\(\(inline\|static\|virtual\|explicit\)\s\+\)\+', 'cWe', line('.'))
+		call search('\(\(inline\|static\|virtual\|explicit\|friend\|extern\)\s\+\)\+', 'cWe', line('.'))
 		call search('\h\s', 'Wbec', line('.'))
 		let modifiers = strpart(getline('.'), modifiersStart, col('.') - modifiersStart - 1)
 	endif
 	call search('[a-zA-Z_~]', 'Wc', line('.'))
+
+	if match(modifiers, 'friend') != -1
+		return [ 0, 0, 'type', 'identifier', '' ]
+	endif
 
 	let typeStart = col('.') - 1
 
@@ -112,17 +113,13 @@ function! s:ParseDeclaration()
 		call search(functionMatch . '.', 'cWe', line('.'))
 		let retVal[3] = scope[0] . strpart(getline('.'), identifierStart, col('.') - identifierStart - 2)
 
-		if template != ''
-			let retVal[3] = retVal[3] . '<' . template . '>'
-		endif
-		
 		let retVal[3] = retVal[3] . '(' . s:ParseArguments() . ')'
 
 		if search('const', 'W', line('.'))
 			let retVal[3] = retVal[3] . ' const'
 		endif
 
-	elseif search('[a-zA-Z_][a-zA-Z0-9_]*;', 'cW', line('.'))
+	elseif search('[a-zA-Z_][a-zA-Z0-9_]*\(\[\]\)\=;', 'cW', line('.'))
 		if match(modifiers, 'static') != -1 || s:CheckClass() == 0
 			let retVal[0] = 1
 		endif
@@ -130,7 +127,7 @@ function! s:ParseDeclaration()
 		let identifierStart = col('.') - 1
 		call search('[^\S]\s', 'Wbe', line('.'))
 		let retVal[2] = strpart(getline('.'), typeStart, col('.') - typeStart - 1)
-		call search('[a-zA-Z_][a-zA-Z0-9_]*;', 'cWe', line('.'))
+		call search('[a-zA-Z_][a-zA-Z0-9_]*\(\[\]\)\=;', 'cWe', line('.'))
 		
 		let retVal[3] = scope[0] . strpart(getline('.'), identifierStart, col('.') - identifierStart - 1)
 	endif
@@ -186,17 +183,18 @@ function! s:SwapDecDef()
 
 	if declaration[0] == 1
 		if declaration[1] == 1
-			exec 'drop ' . fnameescape(s:GetBuddyFile())
+			silent exec 'drop ' . fnameescape(s:GetBuddyFile())
 			let b:buddyFile = headerFileName
 			call s:GotoOrDropBack(declaration[3], declaration[2], declaration[4])
 		else
-			exec 'drop ' . fnameescape(s:GetBuddyFile())
+			silent exec 'drop ' . fnameescape(s:GetBuddyFile())
 			let b:buddyFile = headerFileName
 			call s:GotoOrCreate(declaration[3], declaration[2], declaration[4])
 		endif
 	else
-		exec 'drop ' . fnameescape(s:GetBuddyFile())
+		silent exec 'drop ' . fnameescape(s:GetBuddyFile())
 		let b:buddyFile = headerFileName
+		echo 'Switching to source file (' . expand("%:.") . ')'
 	endif
 endfunction
 
@@ -207,10 +205,10 @@ function! s:CheckForDefinition(identifier, template)
 
 	let searchPattern = a:identifier
 	if a:template != ''
-		let searchPattern = 'template<' . a:template . '> ' . '.*' . searchPattern
+		let searchPattern = 'template<' . a:template . '> \.\*' . searchPattern
 	endif
 
-	let retVal = search(searchPattern, 'W')
+	let retVal = search('\V' . searchPattern, 'W')
 
 	call cursor(lineNo, colNo)
 
@@ -221,10 +219,11 @@ function! s:GotoOrDropBack(identifier, type, template)
 	let lineNo = s:CheckForDefinition(a:identifier, a:template)
 
 	if lineNo > 0
-		exec lineNo
-		normal zz
+		silent exec lineNo
+		silent normal zz
+		echo 'Found inline/template definition in source file (' . expand("%:.") . ')'
 	else
-		exec 'drop ' . b:buddyFile
+		silent exec 'drop ' . b:buddyFile
 		call s:GotoOrCreate(a:identifier, a:type, a:template)
 	endif
 endfunction
@@ -255,10 +254,22 @@ function! s:GotoOrCreate(identifier, type, template)
 			call setline(lineNo + 3, '')
 			call setline(lineNo + 4, '#endif')
 		endif
+
+		if b:goBack != 0
+			echo 'Adding definition to header file (' . expand("%:.") . ')'
+		else
+			echo 'Adding definition to source file (' . expand("%:.") . ')'
+		endif
+	else
+		if b:goBack != 0
+			echo 'Found definition in header file (' . expand("%:.") . ')'
+		else
+			echo 'Found definition in source file (' . expand("%:.") . ')'
+		endif
 	endif
 
-	exec lineNo
-	normal zz
+	silent exec lineNo
+	silent normal zz
 endfunction
 
 function! s:GetBuddyFile()
@@ -267,11 +278,13 @@ endfunction
 
 function! s:VimDecDef()
 	if expand("%:e") == 'cpp'
-		exec 'drop ' . b:buddyFile
+		silent exec 'drop ' . b:buddyFile
+		echo 'Returning to header file (' . expand("%:.") . ')'
 	elseif b:goBack != 0
-		exec b:goBack
+		silent exec b:goBack
 		let b:goBack = 0
-		normal zz
+		silent normal zz
+		echo 'Returning to declaration section of header file (' . expand("%:.") . ')'
 	else
 		call s:SwapDecDef()
 	endif
