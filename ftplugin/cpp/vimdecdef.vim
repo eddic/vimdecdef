@@ -208,7 +208,7 @@ function! s:CheckForDefinition(identifier, template)
 		let searchPattern = 'template<' . a:template . '> \.\*' . searchPattern
 	endif
 
-	let retVal = search('\V' . searchPattern . '\m[^a-zA-Z0-9_]', 'W')
+	let retVal = search('\V' . searchPattern . '\m\([^a-zA-Z0-9_]\|$\)', 'W')
 
 	call cursor(lineNo, colNo)
 
