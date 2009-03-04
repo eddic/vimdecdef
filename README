@@ -2,7 +2,7 @@
                                  Eddie Carle
                               eddie@mailforce.net
 
-Introduction
+INTRODUCTION
 
 vimdecdef is a simple vim script that facilitates transitioning between
 declarations and definitions in C++. The script can take a declaration and
@@ -37,7 +37,7 @@ following functions based on it's situation:
  * Activating the script while in the source file will always result in
    switching back to the header file at it's last cursor position.
 
-Usage
+USAGE
 
 First copy vimdecdef.vim into your ~/.vim/ftplugin/cpp directory. You may want
 to enable hidden (:set hidden) while using the script as it tends to work in a
@@ -57,7 +57,7 @@ press <F7> at a blank line and the source file will be loaded. Press it again
 and you will switch back to the header file. Hit <F7> at a declaration, and
 special things discussed above will happen.
 
-Limitations
+LIMITATIONS
 
 Obviously this script is not without it's limitations. Here are a few that have
 been noticed. Feel free to contact me with others you may notice. Or better yet,
