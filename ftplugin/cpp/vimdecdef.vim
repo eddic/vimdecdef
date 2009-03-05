@@ -131,7 +131,7 @@ function! s:ParseDeclaration()
 			return [ 0, 0, 'type', 'identifier', '' ]
 		endif
 
-	elseif search('[a-zA-Z_][a-zA-Z0-9_]*\(\[\]\)\=;', 'cW', line('.'))
+	elseif search('[a-zA-Z_][a-zA-Z0-9_]*\(\[\]\)\==\=[0-9a-fA-Fx]*;', 'cW', line('.'))
 		if match(modifiers, 'static') != -1 || s:CheckClass() == 0
 			let retVal[0] = 1
 		endif
@@ -139,9 +139,9 @@ function! s:ParseDeclaration()
 		let identifierStart = col('.') - 1
 		call search('[^\S]\s', 'Wbe', line('.'))
 		let retVal[2] = strpart(getline('.'), typeStart, col('.') - typeStart - 1)
-		call search('[a-zA-Z_][a-zA-Z0-9_]*\(\[\]\)\=;', 'cWe', line('.'))
+		call search('[a-zA-Z_][a-zA-Z0-9_]*\(\[\]\)\=\ze=\=[0-9a-fA-Fx]*;', 'cWe', line('.'))
 		
-		let retVal[3] = scope[0] . strpart(getline('.'), identifierStart, col('.') - identifierStart - 1)
+		let retVal[3] = scope[0] . strpart(getline('.'), identifierStart, col('.') - identifierStart)
 	endif
 
 	return retVal
