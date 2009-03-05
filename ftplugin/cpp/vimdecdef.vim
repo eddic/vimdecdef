@@ -133,7 +133,7 @@ function! s:ParseDeclaration()
 
 	elseif search('[a-zA-Z_][a-zA-Z0-9_]*\(\[\]\)\==\=[0-9a-fA-Fx]*;', 'cW', line('.'))
 		if match(modifiers, 'static') != -1 || s:CheckClass() == 0
-			let retVal[0] = 1
+			let retVal[0] = 2
 		endif
 
 		let identifierStart = col('.') - 1
@@ -193,15 +193,15 @@ function! s:SwapDecDef()
 	let declaration = s:ParseDeclaration()
 	let headerFileName =  expand("%:.")
 
-	if declaration[0] == 1
+	if declaration[0] != 0
 		if declaration[1] == 1
 			silent exec 'e ' . fnameescape(s:GetBuddyFile())
 			let b:buddyFile = headerFileName
-			call s:GotoOrDropBack(declaration[3], declaration[2], declaration[4])
+			call s:GotoOrDropBack(declaration[3], declaration[2], declaration[4], declaration[0])
 		else
 			silent exec 'e ' . fnameescape(s:GetBuddyFile())
 			let b:buddyFile = headerFileName
-			call s:GotoOrCreate(declaration[3], declaration[2], declaration[4])
+			call s:GotoOrCreate(declaration[3], declaration[2], declaration[4], declaration[0])
 		endif
 	else
 		silent exec 'e ' . fnameescape(s:GetBuddyFile())
@@ -227,7 +227,7 @@ function! s:CheckForDefinition(identifier, template)
 	return retVal
 endfunction
 
-function! s:GotoOrDropBack(identifier, type, template)
+function! s:GotoOrDropBack(identifier, type, template, brackets)
 	let lineNo = s:CheckForDefinition(a:identifier, a:template)
 
 	if lineNo > 0
@@ -236,11 +236,11 @@ function! s:GotoOrDropBack(identifier, type, template)
 		echo 'Found inline/template definition in source file (' . expand("%:.") . ')'
 	else
 		silent exec 'e ' . b:buddyFile
-		call s:GotoOrCreate(a:identifier, a:type, a:template)
+		call s:GotoOrCreate(a:identifier, a:type, a:template, a:brackets)
 	endif
 endfunction
 
-function! s:GotoOrCreate(identifier, type, template)
+function! s:GotoOrCreate(identifier, type, template, brackets)
 	if expand("%:e") != g:vimdecdefSourceExtension
 		let b:goBack = line('.')
 	endif
@@ -263,8 +263,10 @@ function! s:GotoOrCreate(identifier, type, template)
 		endif
 		call setline(lineNo - 1, '')
 		call setline(lineNo, definition)
-		call setline(lineNo + 1, '{')
-		call setline(lineNo + 2, '}')
+		if a:brackets == 1
+			call setline(lineNo + 1, '{')
+			call setline(lineNo + 2, '}')
+		endif
 		if addEndIf == 1
 			call setline(lineNo + 3, '')
 			call setline(lineNo + 4, '#endif')
