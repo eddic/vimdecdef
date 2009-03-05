@@ -10,6 +10,14 @@ if exists("*s:GetScope")
 	finish
 endif
 
+if !exists("g:vimdecdefSourceExtension")
+	let g:vimdecdefSourceExtension = "cpp"
+endif
+
+if !exists("g:vimdecdefSourcePrefix")
+	let g:vimdecdefSourcePrefix = "src/"
+endif
+
 function! s:GetScope()
 	let lineNo = line('.')
 	let colNo = col('.')
@@ -233,7 +241,7 @@ function! s:GotoOrDropBack(identifier, type, template)
 endfunction
 
 function! s:GotoOrCreate(identifier, type, template)
-	if expand("%:e") != 'cpp'
+	if expand("%:e") != g:vimdecdefSourceExtension
 		let b:goBack = line('.')
 	endif
 	let lineNo = s:CheckForDefinition(a:identifier, a:template)
@@ -280,11 +288,11 @@ function! s:GotoOrCreate(identifier, type, template)
 endfunction
 
 function! s:GetBuddyFile()
-	return 'src/' . expand("%:t:r") . '.cpp'
+	return g:vimdecdefSourcePrefix . expand("%:t:r") . '.' . g:vimdecdefSourceExtension
 endfunction
 
 function! s:VimDecDef()
-	if expand("%:e") == 'cpp'
+	if expand("%:e") == g:vimdecdefSourceExtension
 		silent exec 'e ' . b:buddyFile
 		echo 'Returning to header file (' . expand("%:.") . ')'
 	elseif b:goBack != 0
