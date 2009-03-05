@@ -1,0 +1,6 @@
+#!/bin/bash
+
+mkdir doc
+echo -e "*vimdecdef.txt* Switch between C++ declarations and definitions\n" > doc/vimdecdef.txt
+cat README >> doc/vimdecdef.txt
+zip -9r vimdecdef.zip ftplugin doc README
