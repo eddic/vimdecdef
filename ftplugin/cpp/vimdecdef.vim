@@ -115,7 +115,7 @@ function! s:ParseDeclaration()
 
 		let identifierStart = col('.') - 1
 
-		call search('[^\s]\s', 'Wbe', line('.'))
+		call search('[^\S]\s', 'Wbe', line('.'))
 		let retVal[2] = strpart(getline('.'), typeStart, col('.') - typeStart - 1)
 
 		call search(functionMatch . '.', 'cWe', line('.'))
