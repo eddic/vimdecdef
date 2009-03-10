@@ -285,6 +285,8 @@ function! s:GotoOrCreate(identifier, type, template, brackets)
 		endif
 	endif
 
+	silent exec lineNo + 1
+	silent! normal zo
 	silent exec lineNo
 	silent normal zz
 endfunction
