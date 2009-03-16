@@ -57,11 +57,13 @@ press <F7> at a blank line and the source file will be loaded. Press it again
 and you will switch back to the header file. Hit <F7> at a declaration, and
 special things discussed above will happen.
 
-There are two customizable options: source file prefix and source file
-extension. The default definitions follow.
+There are three customizable options: source file prefix, source file
+extension and whether or not to actually use a separate source file.
+The default definitions follow.
 
 let g:vimdecdefSourceExtension = "cpp"
 let g:vimdecdefSourcePrefix = "src/"
+let g:vimdecdefSourceSeparate = 1
 
 LIMITATIONS
 

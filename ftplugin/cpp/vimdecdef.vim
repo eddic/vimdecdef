@@ -1,3 +1,7 @@
+if exists("*s:GetScope")
+	finish
+endif
+
 map <buffer> <unique> <Plug>vimdecdef :call <SID>VimDecDef()<CR>
 
 if !exists("b:buddyFile")
@@ -6,16 +10,16 @@ endif
 
 let b:goBack = 0
 
-if exists("*s:GetScope")
-	finish
-endif
-
 if !exists("g:vimdecdefSourceExtension")
 	let g:vimdecdefSourceExtension = "cpp"
 endif
 
 if !exists("g:vimdecdefSourcePrefix")
 	let g:vimdecdefSourcePrefix = "src/"
+endif
+
+if !exists("g:vimdecdefSeparateSource")
+	let g:vimdecdefSeparateSource = 1
 endif
 
 function! s:GetScope()
@@ -193,20 +197,24 @@ function! s:SwapDecDef()
 	let declaration = s:ParseDeclaration()
 	let headerFileName =  expand("%:.")
 
-	if declaration[0] != 0
-		if declaration[1] == 1
-			silent exec 'e ' . fnameescape(s:GetBuddyFile())
-			let b:buddyFile = headerFileName
-			call s:GotoOrDropBack(declaration[3], declaration[2], declaration[4], declaration[0])
+	if g:vimdecdefSeparateSource == 1
+		if declaration[0] != 0
+			if declaration[1] == 1
+				silent exec 'e ' . fnameescape(s:GetBuddyFile())
+				let b:buddyFile = headerFileName
+				call s:GotoOrDropBack(declaration[3], declaration[2], declaration[4], declaration[0])
+			else
+				silent exec 'e ' . fnameescape(s:GetBuddyFile())
+				let b:buddyFile = headerFileName
+				call s:GotoOrCreate(declaration[3], declaration[2], declaration[4], declaration[0])
+			endif
 		else
 			silent exec 'e ' . fnameescape(s:GetBuddyFile())
 			let b:buddyFile = headerFileName
-			call s:GotoOrCreate(declaration[3], declaration[2], declaration[4], declaration[0])
+			echo 'Switching to source file (' . expand("%:.") . ')'
 		endif
-	else
-		silent exec 'e ' . fnameescape(s:GetBuddyFile())
-		let b:buddyFile = headerFileName
-		echo 'Switching to source file (' . expand("%:.") . ')'
+	elseif declaration[0] != 0
+		call s:GotoOrCreate(declaration[3], declaration[2], declaration[4], declaration[0])
 	endif
 endfunction
 
@@ -241,7 +249,7 @@ function! s:GotoOrDropBack(identifier, type, template, brackets)
 endfunction
 
 function! s:GotoOrCreate(identifier, type, template, brackets)
-	if expand("%:e") != g:vimdecdefSourceExtension
+	if expand("%:e") != g:vimdecdefSourceExtension || g:vimdecdefSeparateSource == 0
 		let b:goBack = line('.')
 	endif
 	let lineNo = s:CheckForDefinition(a:identifier, a:template)
@@ -296,7 +304,7 @@ function! s:GetBuddyFile()
 endfunction
 
 function! s:VimDecDef()
-	if expand("%:e") == g:vimdecdefSourceExtension
+	if expand("%:e") == g:vimdecdefSourceExtension && g:vimdecdefSeparateSource == 1
 		silent exec 'e ' . b:buddyFile
 		echo 'Returning to header file (' . expand("%:.") . ')'
 	elseif b:goBack != 0
