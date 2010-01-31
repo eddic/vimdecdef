@@ -1,14 +1,10 @@
-if exists("*s:GetScope")
-	finish
-endif
-
-map <buffer> <unique> <Plug>vimdecdef :call <SID>VimDecDef()<CR>
-
 if !exists("b:buddyFile")
 	let b:buddyFile = ''
 endif
 
 let b:goBack = 0
+
+map <buffer> <unique> <Plug>vimdecdef :call <SID>VimDecDef()<CR>
 
 if !exists("g:vimdecdefSourceExtension")
 	let g:vimdecdefSourceExtension = "cpp"
@@ -20,6 +16,10 @@ endif
 
 if !exists("g:vimdecdefSeparateSource")
 	let g:vimdecdefSeparateSource = 1
+endif
+
+if exists("*s:GetScope")
+	finish
 endif
 
 function! s:GetScope()
